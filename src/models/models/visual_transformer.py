@@ -347,15 +347,9 @@ class VisualGeometryTransformer(nn.Module):
     def _process_conditioning(self, depth_maps, ray_dirs, poses, b, seq_len, patch_count, embed_dim, images, cond_flags):
         """Process conditioning inputs."""
         h, w = images.shape[-2:]
-        if self.training:
-            assert self.sampling_strategy is not None
-            if self.sampling_strategy == "uniform":
-                pose_prob = depth_prob = rays_prob = 0.5
-            else:
-                raise ValueError(f"Unknown sampling strategy: {self.sampling_strategy}")
-
+        
         # Process camera pose embedding
-        use_poses = (self.training and random.random() < pose_prob) or (not self.training and cond_flags[0] == 1 and poses is not None)
+        use_poses = (cond_flags[0] == 1 and poses is not None)
         if use_poses:
             poses = poses.view(b*seq_len, -1)
             pose_tokens = self.pose_embed(poses).unsqueeze(1)
@@ -363,7 +357,7 @@ class VisualGeometryTransformer(nn.Module):
             pose_tokens = torch.zeros((b*seq_len, 1, embed_dim), device=images.device, dtype=images.dtype)
 
         # Process depth map embedding
-        use_depth = (self.training and random.random() < depth_prob) or (not self.training and cond_flags[1] == 1 and depth_maps is not None)
+        use_depth = cond_flags[1] == 1 and depth_maps is not None
         if use_depth:
             depth_maps = depth_maps.view(b*seq_len, 1, h, w)
             depth_tokens = self.depth_embed(depth_maps).reshape(b * seq_len, patch_count, embed_dim)
@@ -371,7 +365,7 @@ class VisualGeometryTransformer(nn.Module):
             depth_tokens = torch.zeros((b*seq_len, patch_count, embed_dim), device=images.device, dtype=images.dtype)
 
         # Process ray direction embedding
-        use_rays = (self.training and random.random() < rays_prob) or (not self.training and cond_flags[2] == 1 and ray_dirs is not None)
+        use_rays = cond_flags[2] == 1 and ray_dirs is not None
         if use_rays:
             ray_dirs = ray_dirs.view(b*seq_len, -1)
             ray_tokens = self.ray_embed(ray_dirs).unsqueeze(1)
@@ -396,15 +390,7 @@ class VisualGeometryTransformer(nn.Module):
         if pos is not None and pos.shape != pos_target_shape:
             pos = pos.view(*pos_target_shape)
 
-        if self.training:
-            tokens = checkpoint(
-                blocks[block_idx], 
-                tokens, 
-                pos=pos, 
-                use_reentrant=self.use_reentrant_checkpointing, 
-            )
-        else:
-            tokens = blocks[block_idx](tokens, pos=pos)
+        tokens = blocks[block_idx](tokens, pos=pos)
             
         return tokens.view(*token_shape)
 
