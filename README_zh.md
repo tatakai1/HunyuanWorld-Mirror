@@ -103,38 +103,39 @@ huggingface-cli download tencent/HunyuanWorld-Mirror --local-dir ./ckpts
 ## 🚀 使用图像和先验进行推理
 ### 示例代码片段
 ```python
+from pathlib import Path
 import torch
 from src.models.models.worldmirror import WorldMirror
 from src.utils.inference_utils import extract_load_and_preprocess_images
 
-# --- 设置 ---
+# --- Setup ---
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = WorldMirror.from_pretrained("tencent/HunyuanWorld-Mirror").to(device)
 
-# --- 加载数据 ---
-# 将 N 张图像序列加载到张量中
+# --- Load Data ---
+# Load a sequence of N images into a tensor
 inputs = {}
 inputs['img'] = extract_load_and_preprocess_images(
-    path/to/your/data, # 视频或包含图像的目录
-    fps=1, # 从视频中提取帧的帧率
+    Path("path/to/your/data"), # video or directory containing images 
+    fps=1, # fps for extracing frames from video
     target_size=518
-).to(device)  # [1,N,3,H,W], 范围在 [0,1]
+).to(device)  # [1,N,3,H,W], in [0,1]
 
-# -- 加载先验（可选） --
-condition = [0, 0, 0]
-if prior_pose_path is not None:
-    inputs["camera_pose"] = np.load(prior_pose_path) # [1, N, 4, 4]
-    condition[0] = 1
-if prior_depth_path is not None:
-    inputs["depthmap"] = np.load(prior_depth_path) # [1, N, H, W]
-    condition[1] = 1
-if prior_intr_path is not None:
-    inputs["camera_intrinsics"] = np.load(prior_intr_path) # [1, N, 3, 3]
-    condition[2] = 1
+# -- Load Priors (Optional) --
+# Configure conditioning flags and prior paths
+cond_flags = [0, 0, 0]  # [camera_pose, depth, intrinsics]
+prior_data = {
+    'camera_pose': None,      # Camera pose tensor [1, N, 4, 4]
+    'depthmap': None,         # Depth map tensor [1, N, H, W]
+    'camera_intrinsics': None # Camera intrinsics tensor [1, N, 3, 3]
+}
+for idx, (key, data) in enumerate(prior_data.items()):
+    if data is not None:
+        cond_flags[idx] = 1
 
-# --- 推理 ---
+# --- Inference ---
 with torch.no_grad():
-    predictions = model(views=inputs, condition=condition)
+    predictions = model(views=inputs, cond_flags=cond_flags)
 ```
 
 <details>

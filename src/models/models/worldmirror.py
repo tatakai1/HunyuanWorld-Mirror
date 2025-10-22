@@ -131,40 +131,27 @@ class WorldMirror(nn.Module, PyTorchModelHubMixin):
         imgs = views['img']
 
         # Enable conditional input during training if enabled, or during inference if any cond_flags are set
-        use_cond = (
-                (self.training and self.enable_cond) or 
-                (not self.training and sum(cond_flags) > 0)
-            )
+        use_cond = sum(cond_flags) > 0
         
         # Extract priors and process features based on conditional input
-        context_token_list = None
         if use_cond:
             priors = self.extract_priors(views)
             token_list, patch_start_idx = self.visual_geometry_transformer(
                 imgs, priors, cond_flags=cond_flags
             )
-            if self.enable_gs:
-                cnums = views["context_nums"]
-                context_priors = (priors[0][:,:cnums], priors[1][:,:cnums], priors[2][:,:cnums])
-                context_token_list = self.visual_geometry_transformer(
-                    imgs[:,:cnums], context_priors, cond_flags=cond_flags
-                )[0]
         else:
             token_list, patch_start_idx = self.visual_geometry_transformer(imgs)
-            if self.enable_gs:
-                cnums = views["context_nums"] if "context_nums" in views else imgs.shape[1]
-                context_token_list = self.visual_geometry_transformer(imgs[:,:cnums])[0]
 
         # Execute predictions
         with torch.amp.autocast('cuda', enabled=False):
             # Generate all predictions
             preds = self._gen_all_preds(
-                token_list, context_token_list, imgs, patch_start_idx, views
+                token_list, imgs, patch_start_idx, views
             )
 
         return preds
 
-    def _gen_all_preds(self, token_list, context_token_list, 
+    def _gen_all_preds(self, token_list, 
                       imgs, patch_start_idx, views):
         """Generate all enabled predictions"""
         preds = {}
@@ -175,9 +162,7 @@ class WorldMirror(nn.Module, PyTorchModelHubMixin):
             cam_seq = self.cam_head(token_list)
             cam_params = cam_seq[-1]
             preds["camera_params"] = cam_params
-            if context_token_list is not None:
-                context_cam_params = self.cam_head(context_token_list)[-1]
-                context_preds = {"camera_params": context_cam_params}
+        
             ext_mat, int_mat = vector_to_camera_matrices(
                     cam_params, image_hw=(imgs.shape[-2], imgs.shape[-1])
                 )
@@ -216,9 +201,8 @@ class WorldMirror(nn.Module, PyTorchModelHubMixin):
         
         # 3D Gaussian Splatting
         if self.enable_gs:
-            views['context_nums'] = imgs.shape[1] if "context_nums" not in views else views["context_nums"]
             gs_feat, gs_depth, gs_depth_conf = self.gs_head(
-                context_token_list, images=imgs[:,:views["context_nums"]], patch_start_idx=patch_start_idx
+                token_list, images=imgs, patch_start_idx=patch_start_idx
             )
 
             preds["gs_depth"] = gs_depth
@@ -228,7 +212,6 @@ class WorldMirror(nn.Module, PyTorchModelHubMixin):
                 images=imgs,
                 predictions=preds,
                 views=views,
-                context_predictions=context_preds
             )
 
         return preds
@@ -246,7 +229,7 @@ class WorldMirror(nn.Module, PyTorchModelHubMixin):
         h, w = views['img'].shape[-2:]
         
         # Initialize prior variables
-        poses = depths = rays = None
+        depths = rays = poses = None
         
         # Extract camera pose
         if 'camera_pose' in views:
