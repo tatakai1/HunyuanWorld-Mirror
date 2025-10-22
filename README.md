@@ -19,6 +19,12 @@
 HunyuanWorld-Mirror is a versatile feed-forward model for comprehensive 3D geometric prediction. It integrates diverse geometric priors (**camera poses**, **calibrated intrinsics**, **depth maps**) and simultaneously generates various 3D representations (**point clouds**, **multi-view depths**, **camera parameters**, **surface normals**, **3D Gaussians**) in a single forward pass.
 
 
+
+https://github.com/user-attachments/assets/146a9a25-5eb7-4400-aa09-5b58e1d10a5e
+
+
+
+
 ## 🔥🔥🔥 Updates
 * **[Oct 22, 2025]**: We release the inference code and model weights. [Download](https://huggingface.co/tencent/HunyuanWorld-Mirror).
 
@@ -237,4 +243,4 @@ If you find HunyuanWorld-Mirror useful for your research and applications, pleas
 Please send emails to tengfeiwang12@gmail.com if there is any question.
 
 ## Acknowledgements
-We sincerely thank the authors and contributors of [VGGT](https://github.com/facebookresearch/vggt), [Fast3R](https://github.com/facebookresearch/fast3r), [CUT3R](https://github.com/CUT3R/CUT3R), and [DUSt3R](https://github.com/naver/dust3r) for their outstanding open-source work and pioneering research. We also thank the authors and contributors of [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), [gsplat](https://github.com/nerfstudio-project/gsplat), and [MapAnything](https://github.com/facebookresearch/map-anything) for their open-source work for 3DGS rendering and interactive demo interface.
+We would like to thank [HunyuanWorld](https://github.com/Tencent-Hunyuan/HunyuanWorld-1.0). We also sincerely thank the authors and contributors of [VGGT](https://github.com/facebookresearch/vggt), [Fast3R](https://github.com/facebookresearch/fast3r), [CUT3R](https://github.com/CUT3R/CUT3R), and [DUSt3R](https://github.com/naver/dust3r) for their outstanding open-source work and pioneering research.

@@ -19,6 +19,11 @@
 HunyuanWorld-Mirror 是一个多功能的前馈模型，用于全面的3D几何预测。它整合了多种几何先验（**相机位姿**、**校准内参**、**深度图**），并在单次前向传播中同时生成各种3D表示（**点云**、**多视图深度**、**相机参数**、**表面法线**、**3D高斯**）。
 
 
+
+https://github.com/user-attachments/assets/ced3ef9e-8f90-423f-8ad0-ada9069111d6
+
+
+
 ## 🔥🔥🔥 更新
 * **[2025年10月22日]**：我们发布了推理代码和模型权重。[下载](https://huggingface.co/tencent/HunyuanWorld-Mirror)。
 
@@ -235,4 +240,4 @@ python submodules/gsplat/examples/simple_trainer_worldmirror.py default --data_f
 如有任何问题，请发送邮件至 tengfeiwang12@gmail.com。
 
 ## 致谢
-我们衷心感谢 [VGGT](https://github.com/facebookresearch/vggt)、[Fast3R](https://github.com/facebookresearch/fast3r)、[CUT3R](https://github.com/CUT3R/CUT3R) 和 [DUSt3R](https://github.com/naver/dust3r) 的作者和贡献者，感谢他们杰出的开源工作和开创性的研究。我们还要感谢 [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting)、[gsplat](https://github.com/nerfstudio-project/gsplat) 和 [MapAnything](https://github.com/facebookresearch/map-anything) 的作者和贡献者，感谢他们在3DGS渲染和交互式演示界面方面的开源工作。
+我们衷心感谢[HunyuanWorld](https://github.com/Tencent-Hunyuan/HunyuanWorld-1.0)、[VGGT](https://github.com/facebookresearch/vggt)、[Fast3R](https://github.com/facebookresearch/fast3r)、[CUT3R](https://github.com/CUT3R/CUT3R) 和 [DUSt3R](https://github.com/naver/dust3r) 的作者和贡献者，感谢他们杰出的开源工作和开创性的研究。
