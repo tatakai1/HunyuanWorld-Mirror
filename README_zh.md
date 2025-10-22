@@ -240,4 +240,4 @@ python submodules/gsplat/examples/simple_trainer_worldmirror.py default --data_f
 如有任何问题，请发送邮件至 tengfeiwang12@gmail.com。
 
 ## 致谢
-我们衷心感谢 [VGGT](https://github.com/facebookresearch/vggt)、[Fast3R](https://github.com/facebookresearch/fast3r)、[CUT3R](https://github.com/CUT3R/CUT3R) 和 [DUSt3R](https://github.com/naver/dust3r) 的作者和贡献者，感谢他们杰出的开源工作和开创性的研究。我们还要感谢 [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting)、[gsplat](https://github.com/nerfstudio-project/gsplat) 和 [MapAnything](https://github.com/facebookresearch/map-anything) 的作者和贡献者，感谢他们在3DGS渲染和交互式演示界面方面的开源工作。
+我们衷心感谢[HunyuanWorld](https://github.com/Tencent-Hunyuan/HunyuanWorld-1.0)、[VGGT](https://github.com/facebookresearch/vggt)、[Fast3R](https://github.com/facebookresearch/fast3r)、[CUT3R](https://github.com/CUT3R/CUT3R) 和 [DUSt3R](https://github.com/naver/dust3r) 的作者和贡献者，感谢他们杰出的开源工作和开创性的研究。
