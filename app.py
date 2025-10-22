@@ -75,7 +75,7 @@ class TeeOutput:
 # -------------------------------------------------------------------------
 # Model inference
 # -------------------------------------------------------------------------
-@spaces.GPU()
+@spaces.GPU(duration=120)
 def run_model(
     target_dir,
     confidence_percentile: float = 10,
@@ -466,7 +466,7 @@ def prepare_visualization_data(
 
     return visualization_dict
 
-@spaces.GPU()
+@spaces.GPU(duration=120)
 def gradio_demo(
     target_dir,
     frame_selector="All",
@@ -1406,7 +1406,7 @@ with gr.Blocks(
 
         # Load prediction data
         prediction_data = np.load(prediction_file_path, allow_pickle=True)
-        predictions = {key: prediction_data[key] for key in prediction_data.keys()}
+        predictions = {key: prediction_data[key] for key in prediction_data.keys() if key != 'splats'}
 
         # Generate GLB scene file path (named based on parameter combination)
         safe_frame_name = frame_selector.replace('.', '_').replace(':', '').replace(' ', '_')
@@ -1478,6 +1478,7 @@ with gr.Blocks(
             images_directory = os.path.join(workspace_dir, "images")
             image_file_paths = [os.path.join(images_directory, path) for path in os.listdir(images_directory)]
             img = load_and_preprocess_images(image_file_paths)
+            img = img.detach().cpu().numpy()
 
             # Regenerate processed data with new filter settings
             refreshed_data = {}
