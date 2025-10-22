@@ -19,6 +19,11 @@
 HunyuanWorld-Mirror 是一个多功能的前馈模型，用于全面的3D几何预测。它整合了多种几何先验（**相机位姿**、**校准内参**、**深度图**），并在单次前向传播中同时生成各种3D表示（**点云**、**多视图深度**、**相机参数**、**表面法线**、**3D高斯**）。
 
 
+
+https://github.com/user-attachments/assets/60de7f11-a43d-4aa0-b7cb-ca0728ef76b0
+
+
+
 ## 🔥🔥🔥 更新
 * **[2025年10月22日]**：我们发布了推理代码和模型权重。[下载](https://huggingface.co/tencent/HunyuanWorld-Mirror)。
 
