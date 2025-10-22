@@ -184,67 +184,29 @@ class GaussianSplatRenderer(nn.Module):
         # 1) Predict GS features from tokens, then convert to Gaussian parameters
         gs_feats_reshape = rearrange(gs_feats, "b s c h w -> (b s) c h w")
         gs_params = self.gs_head(gs_feats_reshape)
+        
+        # 2) Select predicted cameras
+        Bx = images.shape[0]
+        pred_all_extrinsic, pred_all_intrinsic = self.prepare_prediction_cameras(predictions, S + V, hw=(H, W))
+        pred_all_extrinsic = pred_all_extrinsic.reshape(Bx, S + V, 4, 4)
+        pred_all_source_extrinsic = pred_all_extrinsic[:, :S]
 
-        # 2) Select cameras (predicted or GT), and organize supervision data (gt_colors, gt_depths, valid_masks)
-        if self.training:
-            if self.render_novel_views and V > 0:
-                pred_all_extrinsic, pred_all_intrinsic = self.prepare_cameras(views, S+V)
-                render_viewmats, render_Ks = pred_all_extrinsic, pred_all_intrinsic
-                render_images = images
-                gt_colors = render_images.permute(0, 1, 3, 4, 2)
-                gt_depths = views["depthmap"]  # [B, S+V, H, W]
+        scale_factor = 1.0
+        if context_predictions is not None:
+            pred_source_extrinsic, _ = self.prepare_prediction_cameras(context_predictions, S, hw=(H, W))
+            pred_source_extrinsic = pred_source_extrinsic.reshape(Bx, S, 4, 4)
+            scale_factor = pred_source_extrinsic[:, :, :3, 3].mean(dim=(1, 2), keepdim=True) / (
+                pred_all_source_extrinsic[:, :, :3, 3].mean(dim=(1, 2), keepdim=True) + 1e-6
+            )
 
-                gt_valid_masks_src = views["valid_mask"][:, :S]      # [B, S, H, W]
-                gt_valid_masks_tgt = views["valid_mask"][:, S:]     # [B, V, H, W]
-                unproject_masks = calculate_unprojected_mask(views, S)     # [B, V, H, W]
-                valid_masks = torch.cat([gt_valid_masks_src, (gt_valid_masks_tgt & unproject_masks)], dim=1)
-            else:
-                # Only render source views
-                render_viewmats, render_Ks = self.prepare_cameras(views, S)
-                render_images = views["img"][:, :S]
-                gt_colors = render_images.permute(0, 1, 3, 4, 2)
-                gt_depths = views["depthmap"][:, :S]
-                gt_valid_masks = views["valid_mask"][:, :S]
-                valid_masks = gt_valid_masks
-        else:
-            # Re-predict cameras for novel views and perform translation/scale alignment
-            Bx = images.shape[0]
-            pred_all_extrinsic, pred_all_intrinsic = self.prepare_prediction_cameras(predictions, S + V, hw=(H, W))
-            pred_all_extrinsic = pred_all_extrinsic.reshape(Bx, S + V, 4, 4)
-            pred_all_source_extrinsic = pred_all_extrinsic[:, :S]
+        pred_all_extrinsic[..., :3, 3] = pred_all_extrinsic[..., :3, 3] * scale_factor
 
-            scale_factor = 1.0
-            if context_predictions is not None:
-                pred_source_extrinsic, _ = self.prepare_prediction_cameras(context_predictions, S, hw=(H, W))
-                pred_source_extrinsic = pred_source_extrinsic.reshape(Bx, S, 4, 4)
-                scale_factor = pred_source_extrinsic[:, :, :3, 3].mean(dim=(1, 2), keepdim=True) / (
-                    pred_all_source_extrinsic[:, :, :3, 3].mean(dim=(1, 2), keepdim=True) + 1e-6
-                )
-
-            pred_all_extrinsic[..., :3, 3] = pred_all_extrinsic[..., :3, 3] * scale_factor
-
-            render_viewmats, render_Ks = pred_all_extrinsic, pred_all_intrinsic
-            render_images = images
-            gt_colors = render_images.permute(0, 1, 3, 4, 2)
-
-            # Handle pure inference case where views may not have ground truth data
-            gt_depths = views.get("depthmap")
-            valid_masks = None
-            if gt_depths is not None:
-                if views.get("gt_depth") is not None and views["gt_depth"]:
-                    unproject_masks = calculate_unprojected_mask(views, S)
-                    gt_valid_masks_src = views["valid_mask"][:, :S]      # [B, S, H, W]
-                    gt_valid_masks_tgt = views["valid_mask"][:, S:]     # [B, V, H, W]
-                    gt_valid_masks = torch.cat([gt_valid_masks_src, (gt_valid_masks_tgt & unproject_masks)], dim=1)
-                else:
-                    gt_valid_masks = views.get("valid_mask")
-                valid_masks = gt_valid_masks
+        render_viewmats, render_Ks = pred_all_extrinsic, pred_all_intrinsic
+        render_images = images
+        gt_colors = render_images.permute(0, 1, 3, 4, 2)
         
         # 3) Generate splats from gs_params + predictions, and perform voxel merging
-        if self.training and self.using_gtcamera_splat:
-            splats = self.prepare_splats(views, predictions, images, gs_params, S, V, position_from="gsdepth+gtcamera", debug=False)
-        else:
-            splats = self.prepare_splats(views, predictions, images, gs_params, S, V, position_from="gsdepth+predcamera", context_predictions=context_predictions, debug=False)
+        splats = self.prepare_splats(views, predictions, images, gs_params, S, V, position_from="gsdepth+predcamera", context_predictions=context_predictions, debug=False)
         splats_raw = {k: v.clone() for k, v in splats.items()}
 
         # Apply confidence filtering before pruning
@@ -255,19 +217,6 @@ class GaussianSplatRenderer(nn.Module):
             splats = self.prune_gs(splats, voxel_size=self.voxel_size)
         
         # 4) Rasterization rendering (training: chunked rendering + novel view valid mask correction; evaluation: view-by-view)
-        if self.training:
-            if self.render_novel_views and V > 0:
-                indices = np.arange(S+V)
-            else:
-                indices = np.arange(S)
-
-            render_viewmats = render_viewmats[:, indices]
-            render_Ks = render_Ks[:, indices]
-            gt_colors = gt_colors[:, indices]
-            if gt_depths is not None:
-                gt_depths = gt_depths[:, indices]
-            if valid_masks is not None:
-                valid_masks = valid_masks[:, indices]
 
         # Prevent OOM by using chunked rendering
         rendered_colors_list, rendered_depths_list, rendered_alphas_list = [], [], []
@@ -292,16 +241,10 @@ class GaussianSplatRenderer(nn.Module):
         rendered_depths = torch.cat(rendered_depths_list, dim=1)
         rendered_alphas = torch.cat(rendered_alphas_list, dim=1)
 
-        if self.training and self.render_novel_views and V > 0:
-            nvs_rendered_mask = rendered_alphas[:, S:, ..., 0].detach() > 0.1
-            valid_masks[:, S:] = nvs_rendered_mask & valid_masks[:, S:]
-
         # 5) return predictions
         predictions["rendered_colors"] = rendered_colors
         predictions["rendered_depths"] = rendered_depths
         predictions["gt_colors"] = gt_colors
-        predictions["gt_depths"] = gt_depths
-        predictions["valid_masks"] = valid_masks
         predictions["splats"] = splats
         predictions["splats_raw"] = splats_raw
         predictions["rendered_extrinsics"] = render_viewmats
