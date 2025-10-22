@@ -75,7 +75,7 @@ pip install gsplat --index-url https://docs.gsplat.studio/whl/pt24cu124
 我们提供了一个 Gradio 演示，用于快速体验 HunyuanWorld-Mirror 模型。
 
 <p align="center">
-  <img src="assets/gradio_demo.jpg" width="95%" alt="HunyuanWorld-Mirror Gradio Demo">
+  <img src="assets/gradio_demo.gif" width="95%" alt="HunyuanWorld-Mirror Gradio Demo">
 </p>
 
 ### 在线演示
