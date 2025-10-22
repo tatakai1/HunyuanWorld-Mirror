@@ -20,7 +20,9 @@ HunyuanWorld-Mirror is a versatile feed-forward model for comprehensive 3D geome
 
 
 
-https://github.com/user-attachments/assets/1f3d8843-daa7-42d3-9a3b-d89603f25851
+https://github.com/user-attachments/assets/146a9a25-5eb7-4400-aa09-5b58e1d10a5e
+
+
 
 
 ## 🔥🔥🔥 Updates
