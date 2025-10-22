@@ -20,7 +20,7 @@ HunyuanWorld-Mirror 是一个多功能的前馈模型，用于全面的3D几何�
 
 
 
-https://github.com/user-attachments/assets/60de7f11-a43d-4aa0-b7cb-ca0728ef76b0
+https://github.com/user-attachments/assets/ced3ef9e-8f90-423f-8ad0-ada9069111d6
 
 
 
