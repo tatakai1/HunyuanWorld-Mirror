@@ -154,8 +154,9 @@ def main():
         amp_dtype = torch.bfloat16
     else:
         amp_dtype = torch.float32
-    with torch.amp.autocast('cuda', enabled=bool(use_amp), dtype=amp_dtype):
-        predictions = model(views=views, cond_flags=cond_flags)  # Multi-modal inference with priors
+    with torch.no_grad():
+        with torch.amp.autocast('cuda', enabled=bool(use_amp), dtype=amp_dtype):
+            predictions = model(views=views, cond_flags=cond_flags)  # Multi-modal inference with priors
     print(f"🕒 Inference time: {time.time() - start_time:.3f} seconds")
     
     # 5) Save results
