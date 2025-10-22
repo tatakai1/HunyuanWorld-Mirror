@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.gradio/
+inference_output/
+submodules/gsplat/examples/pycolmap/
+skyseg.onnx
