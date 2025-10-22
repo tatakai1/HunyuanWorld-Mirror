@@ -107,6 +107,8 @@ huggingface-cli download tencent/HunyuanWorld-Mirror --local-dir ./ckpts
 ## 🚀 Inference with Images & Priors
 ### Example Code Snippet
 ```python
+from pathlib import Path
+import numpy as np
 import torch
 from src.models.models.worldmirror import WorldMirror
 from src.utils.inference_utils import extract_load_and_preprocess_images
@@ -119,26 +121,25 @@ model = WorldMirror.from_pretrained("tencent/HunyuanWorld-Mirror").to(device)
 # Load a sequence of N images into a tensor
 inputs = {}
 inputs['img'] = extract_load_and_preprocess_images(
-    path/to/your/data, # video or directory containing images 
+    Path("path/to/your/data"), # video or directory containing images 
     fps=1, # fps for extracing frames from video
     target_size=518
 ).to(device)  # [1,N,3,H,W], in [0,1]
-
 # -- Load Priors (Optional) --
-condition = [0, 0, 0]
-if prior_pose_path is not None:
-    inputs["camera_pose"] = np.load(prior_pose_path) # [1, N, 4, 4]
-    condition[0] = 1
-if prior_depth_path is not None:
-    inputs["depthmap"] = np.load(prior_depth_path) # [1, N, H, W]
-    condition[1] = 1
-if prior_intr_path is not None:
-    inputs["camera_intrinsics"] = np.load(prior_intr_path) # [1, N, 3, 3]
-    condition[2] = 1
+# Configure conditioning flags and prior paths
+cond_flags = [0, 0, 0]  # [camera_pose, depth, intrinsics]
+prior_data = {
+    'camera_pose': None,      # Camera pose tensor [1, N, 4, 4]
+    'depthmap': None,         # Depth map tensor [1, N, H, W]
+    'camera_intrinsics': None # Camera intrinsics tensor [1, N, 3, 3]
+}
+for idx, (key, data) in enumerate(prior_data.items()):
+    if data is not None:
+        cond_flags[idx] = 1
 
 # --- Inference ---
 with torch.no_grad():
-    predictions = model(views=inputs, condition=condition)
+    predictions = model(views=inputs, cond_flags=cond_flags)
 ```
 
 <details>
