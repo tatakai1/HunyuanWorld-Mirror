@@ -19,6 +19,11 @@
 HunyuanWorld-Mirror is a versatile feed-forward model for comprehensive 3D geometric prediction. It integrates diverse geometric priors (**camera poses**, **calibrated intrinsics**, **depth maps**) and simultaneously generates various 3D representations (**point clouds**, **multi-view depths**, **camera parameters**, **surface normals**, **3D Gaussians**) in a single forward pass.
 
 
+
+https://github.com/user-attachments/assets/79253c2c-2828-4522-a1d9-2ef8220acc63
+
+
+
 ## 🔥🔥🔥 Updates
 * **[Oct 22, 2025]**: We release the inference code and model weights. [Download](https://huggingface.co/tencent/HunyuanWorld-Mirror).
 
