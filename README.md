@@ -88,7 +88,7 @@ Try our online demo without installation: [🤗 Hugging Face Demo](https://huggi
 ### Local Demo
 ```shell
 # 1. Install requirements for gradio demo
-pip install -r requiremens_demo.txt
+pip install -r requirements_demo.txt
 # 2. Launch gradio demo locally
 python app.py
 ```
@@ -136,6 +136,7 @@ prior_data = {
 for idx, (key, data) in enumerate(prior_data.items()):
     if data is not None:
         cond_flags[idx] = 1
+        inputs[key] = data
 
 # --- Inference ---
 with torch.no_grad():
