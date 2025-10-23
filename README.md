@@ -148,13 +148,14 @@ with torch.no_grad():
 
 ```python
 # Geometry outputs
-pts3d_preds = predictions["pts3d"][0]      # 3D pointmap in world coordinate: [S, H, W, 3]
-depth_preds = predictions["depth"][0]     # Z-depth in camera frame: [S, H, W, 1]
-normal_preds = predictions["normals"][0]   # Surface normal in camera coordinate: [S, H, W, 3]
+pts3d_preds, pts3d_conf = predictions["pts3d"][0], predictions["pts3d_conf"][0]       # 3D point cloud in world coordinate: [S, H, W, 3] and point confidence: [S, H, W]
+depth_preds, depth_conf = predictions["depth"][0], predictions["depth_conf"][0]       # Z-depth in camera frame: [S, H, W, 1] and depth confidence: [S, H, W]
+normal_preds, normal_conf = predictions["normals"][0], predictions["normals_conf"][0] # Surface normal in camera coordinate: [S, H, W, 3] and normal confidence: [S, H, W]
 
 # Camera outputs
 camera_poses = predictions["camera_poses"][0]  # Camera-to-world poses (OpenCV convention): [S, 4, 4]
 camera_intrs = predictions["camera_intrs"][0]  # Camera intrinsic matrices: [S, 3, 3]
+camera_params = predictions["camera_params"][0]   # Camera vector: [S, 9] (translation, quaternion rotation, fov_v, fov_u)
 
 # 3D Gaussian Splatting outputs
 splats = predictions["splats"]
@@ -162,7 +163,7 @@ means = splats["means"][0].reshape(-1, 3)      # Gaussian means: [N, 3]
 opacities = splats["opacities"][0].reshape(-1) # Gaussian opacities: [N]
 scales = splats["scales"][0].reshape(-1, 3)    # Gaussian scales: [N, 3]
 quats = splats["quats"][0].reshape(-1, 4)      # Gaussian quaternions: [N, 4]
-colors = (splats["sh"][0] if "sh" in splats else splats["colors"][0]).reshape(-1, 3)  # Gaussian colors: [N, 3]
+sh = splats["sh"][0].reshape(-1, 1, 3)         # Gaussian spherical harmonics: [N, 1, 3]
 ```
 
 Where:
@@ -217,6 +218,42 @@ Then, run the optimization script:
 ```shell
 python submodules/gsplat/examples/simple_trainer_worldmirror.py default --data_factor 1 --data_dir /path/to/your/inference_output --result_dir /path/to/your/gs_optimization_output
 ```
+
+## 🔮 **Performance**
+HunyuanWorld-Mirror achieves state-of-the-art performance across multiple 3D perception tasks, surpassing feed-forward 3D reconstruction methods. It demonstrates superior performance in **point cloud reconstruction, camera pose estimation, surface normal prediction, novel view rendering and depth estimation**. Incorporating 3D priors, such as **camera poses, depth, or intrinsics**, plays a crucial role in enhancing performance across these tasks. For point cloud reconstruction and novel view synthesis tasks, the performance is as follows:
+
+### Point cloud reconstruction
+
+| Method                        | 7-Scenes            |           | NRGBD             |           | DTU               |           |
+|------------------------------|---------------------|-----------|-------------------|-----------|-------------------|-----------|
+|                              | Acc. ⬇             | Comp. ⬇  | Acc. ⬇          | Comp. ⬇   | Acc. ⬇            | Comp. ⬇   |
+| Fast3R                       | 0.096               | 0.145     | 0.135             | 0.163     | 3.340             | 2.929     |
+| CUT3R                        | 0.094               | 0.101     | 0.104             | 0.079     | 4.742             | 3.400     |
+| VGGT                         | 0.046               | 0.057     | 0.051             | 0.066     | 1.338             | 1.896     |
+| π³                           | 0.048               | 0.072     | 0.026             | 0.028     | 1.198             | 1.849     |
+| **HunyuanWorld-Mirror**      | 0.043           | 0.049 | 0.041         | 0.045 | 1.017        | 1.780 |
+| **+ Intrinsics** | 0.042    | 0.048 | 0.041         | 0.045 | 0.977         | 1.762 |
+| **+ Depths**     | 0.038    | 0.039 | 0.032         | 0.031 | 0.831         | 1.022 |
+| **+ Camera Poses** | 0.023  | 0.036 | 0.029         | 0.032 | 0.990         | 1.847 |
+| **+ All Priors** | **0.018**    | **0.023** | **0.016**         | **0.014** | **0.735**         | **0.935** |
+
+### Novel view synthesis
+| Method                          | Re10K |           |           | DL3DV    |           |           |
+|--------------------------------|-------------------------|-----------|-----------|-------------------|-----------|-----------|
+|                                | PSNR ⬆                 | SSIM ⬆   | LPIPS ⬇  | PSNR ⬆           | SSIM ⬆   | LPIPS ⬇  |
+| FLARE                          | 16.33                  | 0.574     | 0.410     | 15.35            | 0.516     | 0.591     |
+| AnySplat                       | 17.62                  | 0.616     | 0.242     | 18.31            | 0.569     | 0.258     |
+| **HunyuanWorld-Mirror**                | 20.62                  | 0.706     | 0.187     | 20.92            | 0.667     | 0.203     |
+| **+ Intrinsics**   | 22.03                  | 0.765     | 0.165     | 22.08            | 0.723     | 0.175     |
+| **+ Camera Poses** | 20.84                  | 0.713     | 0.182     | 21.18            | 0.674     | 0.197     |
+| **+ Intrinsics + Camera Poses**   | **22.30**              | **0.774** | **0.155** | **22.15**        | **0.726** | **0.174** |
+
+### Boost of Geometric Priors
+<p align="left">
+  <img src="assets/num-prior.png">
+</p>
+
+For the other tasks, refer to the [technique report](https://3d-models.hunyuan.tencent.com/world/worldMirror1_0/HYWorld_Mirror_Tech_Report.pdf) for detailed performance comparisons.
 
 ## 📑 Open-Source Plan
 

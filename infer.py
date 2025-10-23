@@ -60,7 +60,7 @@ def create_confidence_mask(confidence: torch.Tensor,
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Hunyuan3R inference")
+    parser = argparse.ArgumentParser(description="HunyuanWorld-Mirror inference")
     parser.add_argument("--input_path", type=str, default="examples/stylistic/Cat_Girl", help="Input can be: a directory of images; a single video file; or a directory containing multiple video files (.mp4/.avi/.mov/.webm/.gif). If directory has multiple videos, frames from all clips are extracted (using --fps) and merged in filename order.")
     parser.add_argument("--output_path", type=str, default="inference_output")
     parser.add_argument("--conf_threshold", type=float, default=0.0, help="Confidence threshold percentage for filtering points (0-100)")
