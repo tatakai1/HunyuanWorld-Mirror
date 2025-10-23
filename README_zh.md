@@ -84,7 +84,7 @@ pip install gsplat --index-url https://docs.gsplat.studio/whl/pt24cu124
 ### 本地演示
 ```shell
 # 1. 安装 gradio 演示所需的依赖
-pip install -r requiremens_demo.txt
+pip install -r requirements_demo.txt
 # 2. 在本地启动 gradio 演示
 python app.py
 ```
@@ -132,6 +132,7 @@ prior_data = {
 for idx, (key, data) in enumerate(prior_data.items()):
     if data is not None:
         cond_flags[idx] = 1
+        inputs[key] = data
 
 # --- Inference ---
 with torch.no_grad():
