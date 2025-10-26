@@ -26,7 +26,8 @@ https://github.com/user-attachments/assets/146a9a25-5eb7-4400-aa09-5b58e1d10a5e
 
 
 ## 🔥🔥🔥 Updates
-* **[Oct 22, 2025]**: We release the inference code and model weights. [Download](https://huggingface.co/tencent/HunyuanWorld-Mirror).
+* Training codes are planned to release in a few weeks. Stay tuned!
+* **[Oct 22, 2025]**: We release the inference code and model weights. [Download Pretrained Model](https://huggingface.co/tencent/HunyuanWorld-Mirror).
 
 > Join our **[Wechat](#)** and **[Discord](https://discord.gg/dNBrdrGGMa)** group to discuss and find help from us.
 
