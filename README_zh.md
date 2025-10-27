@@ -85,6 +85,7 @@ pip install gsplat --index-url https://docs.gsplat.studio/whl/pt24cu124
 ```shell
 # 1. 安装 gradio 演示所需的依赖
 pip install -r requirements_demo.txt
+# 对于 Windows 系统,请将 onnxruntime 和 gsplat 替换为 Windows 版本的 wheel 包(详见 requirements_demo.txt 中的注释)
 # 2. 在本地启动 gradio 演示
 python app.py
 ```
