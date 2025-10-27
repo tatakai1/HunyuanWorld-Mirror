@@ -12,7 +12,8 @@ trimesh
 matplotlib
 spaces
 pillow_heif
-onnxruntime
+onnxruntime 
+# onnxruntime-gpu==1.19.2 for Windows
 einops
 torchmetrics
 uniception
@@ -20,3 +21,4 @@ colorspacious
 safetensors
 plyfile
 gsplat @ https://github.com/nerfstudio-project/gsplat/releases/download/v1.5.3/gsplat-1.5.3+pt24cu124-cp310-cp310-linux_x86_64.whl
+# gsplat @ https://github.com/nerfstudio-project/gsplat/releases/download/v1.5.3/gsplat-1.5.3+pt24cu124-cp310-cp310-win_amd64.whl for Windows
