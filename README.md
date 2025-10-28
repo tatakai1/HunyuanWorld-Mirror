@@ -89,7 +89,8 @@ Try our online demo without installation: [🤗 Hugging Face Demo](https://huggi
 ### Local Demo
 ```shell
 # 1. Install requirements for gradio demo
-pip install -r requirements_demo.txt
+pip install -r requirements_demo.txt 
+# For Windows, please replace onnxruntime and gsplat with Windows wheels (comments in requirements_demo.txt)
 # 2. Launch gradio demo locally
 python app.py
 ```
