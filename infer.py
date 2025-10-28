@@ -272,7 +272,7 @@ def main():
         print(f"colmap_width: {final_width}, colmap_height: {final_height}")
         
         # Prepare extrinsics/intrinsics (camera-from-world) using resized image size
-        e3x4, intr = vector_to_camera_matrices(predictions["camera_params"], image_hw=(final_height, final_width))
+        e3x4, intr = vector_to_camera_matrices(predictions["camera_params"], image_hw=(H, W))
         extrinsics = e3x4[0] # [S,3,4]
         intrinsics = intr[0] # [S,3,3]
                 
@@ -294,7 +294,9 @@ def main():
         for i in range(S):
             d = predictions["depth"][0, i, :, :, 0]
             d_conf = predictions["depth_conf"][0, i, :, :]
-            c2w = extrinsics[i][:3, :4]  # [3, 4] camera-to-world
+            w2c = extrinsics[i][:3, :4]  # [3, 4] camera-to-world
+            w2c = torch.cat([w2c, torch.tensor([[0, 0, 0, 1]], device=w2c.device)], dim=0)  # [4,4]
+            c2w = torch.linalg.inv(w2c)[:3, :4]  # [4,4]
             K = intrinsics[i]
             pts_i, _, mask = depth_to_world_coords_points(d[None], c2w[None], K[None])
 
